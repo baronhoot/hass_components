@@ -497,17 +497,22 @@ class SqueezeBoxEntity(MediaPlayerEntity):
 
         if media_type == MediaType.PLAYLIST:
             try:
-                # a saved playlist by number
-                payload = {
-                    "search_id": int(media_id),
-                    "search_type": MediaType.PLAYLIST,
-                }
-                playlist = await generate_playlist(self._player, payload)
-            except ValueError:
-                # a list of urls
                 content = json.loads(media_id)
+                if not isinstance(content, dict) or "urls" not in content:
+                    raise ValueError("Invalid JSON format for media_id")
                 playlist = content["urls"]
                 index = content["index"]
+            except (json.JSONDecodeError, ValueError):
+                if not media_id.isdigit():
+                    raise ValueError("media_id must be an integer or a string representing an integer")
+                params = [
+                    "cmd:load",
+                    f"playlist_id:{media_id}",
+                    "play"
+                ]
+                _LOGGER.debug(f"Calling async_call_method with params: {params}")
+                await self.async_call_method("playlistcontrol", params)
+                return
         else:
             payload = {
                 "search_id": media_id,
