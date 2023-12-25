@@ -1,8 +1,9 @@
 {
   "domain": "squeezebox",
   "name": "Squeezebox (Logitech Media Server)",
-  "codeowners": ["@rajlaud"],
+  "codeowners": ["@rajlbaud"],
   "config_flow": true,
+  "version": 999,
   "dhcp": [
     {
       "hostname": "squeezebox*",
