@@ -1,0 +1,15 @@
+{
+  "domain": "lutron_hwqsx",
+  "name": "Lutron HW QSX",
+  "documentation": "https://www.home-assistant.io/integrations/lutron_caseta",
+  "requirements": ["pylutron-caseta==0.15.1"],
+  "config_flow": true,
+  "zeroconf": ["_leap._tcp.local."],
+  "homekit": {
+    "models": ["Smart Bridge"]
+  },
+  "version": "1.0.1",
+  "codeowners": ["@swails", "@bdraco", "@danaues"],
+  "iot_class": "local_push",
+  "loggers": ["pylutron_caseta"]
+}
