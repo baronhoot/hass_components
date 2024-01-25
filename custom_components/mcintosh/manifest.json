@@ -1,0 +1,8 @@
+{
+  "domain": "mcintosh",
+  "name": "McIntosh Network Receivers",
+  "documentation": "https://www.home-assistant.io/integrations/denon",
+  "codeowners": [],
+  "iot_class": "local_polling",
+  "version": "1.0.0"
+}

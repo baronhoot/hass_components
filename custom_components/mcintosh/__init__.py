@@ -1,0 +1,1 @@
+"""The McIntosh AVR component."""
