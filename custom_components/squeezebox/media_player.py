@@ -495,36 +495,48 @@ class SqueezeBoxEntity(MediaPlayerEntity):
             await self._player.async_load_url(media_id, cmd)
             return
 
-        if media_type == MediaType.PLAYLIST:
-            try:
-                content = json.loads(media_id)
-                if not isinstance(content, dict) or "urls" not in content:
-                    raise ValueError("Invalid JSON format for media_id")
-                playlist = content["urls"]
-                index = content["index"]
-            except (json.JSONDecodeError, ValueError):
+        if media_type in [MediaType.PLAYLIST, MediaType.GENRE]:
+            command = "playlistcontrol"
+            if media_type == MediaType.PLAYLIST:
+                id_key = "playlist_id"
+                try:
+                    # Handle Playlist: Expecting JSON
+                    content = json.loads(media_id)
+                    if not isinstance(content, dict) or "urls" not in content:
+                        raise ValueError("Invalid JSON format for media_id")
+                    playlist = content["urls"]
+                    index = content["index"]
+                    await self._player.async_load_playlist(playlist, cmd)
+                    if index is not None:
+                        await self._player.async_index(index)
+                    return
+                except (json.JSONDecodeError, ValueError):
+                    # Playlist ID is not JSON, continue to generate command
+                    pass
+            else:  # MediaType.GENRE
+                # Handle Genre: Always non-JSON
                 if not media_id.isdigit():
-                    raise ValueError("media_id must be an integer or a string representing an integer")
-                params = [
-                    "cmd:load",
-                    f"playlist_id:{media_id}",
-                    "play"
-                ]
-                _LOGGER.debug(f"Calling async_call_method with params: {params}")
-                await self.async_call_method("playlistcontrol", params)
-                return
+                    raise ValueError("media_id for Genre must be an integer or a string representing an integer")
+                id_key = "genre_id"
+
+            # Common command construction for non-JSON playlist and genre
+            params = [
+                "cmd:load",
+                f"{id_key}:{media_id}",
+                "play"
+            ]
+            _LOGGER.debug(f"Calling async_call_method with params: {params}")
+            await self.async_call_method(command, params)
         else:
+            # Handle other media types
             payload = {
                 "search_id": media_id,
                 "search_type": media_type,
             }
             playlist = await generate_playlist(self._player, payload)
-
             _LOGGER.debug("Generated playlist: %s", playlist)
+            await self._player.async_load_playlist(playlist, cmd)
 
-        await self._player.async_load_playlist(playlist, cmd)
-        if index is not None:
-            await self._player.async_index(index)
 
     async def async_set_repeat(self, repeat: RepeatMode) -> None:
         """Set the repeat mode."""
